@@ -55,6 +55,7 @@ class SongInfo:
     difficulty_details: list[dict] = field(default_factory=list)
     image_url: Optional[str] = None
     aliases: list[str] = field(default_factory=list)
+    rights: str = ""
 
     @property
     def display_id(self) -> int:
@@ -171,7 +172,11 @@ class PlayerInfo:
     rating: int
     friend_code: str
     class_rank: int
+    course_rank: int = 0
+    star: int = 0
+    trophy: Optional[dict] = None
     icon: Optional[dict] = None
+    upload_time: Optional[str] = None
 
 
 @dataclass

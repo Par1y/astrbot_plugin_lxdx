@@ -89,19 +89,18 @@ class MaimaiHandler:
                 t,
                 {
                     "plugin_display_name": "落雪DX",
-                    "plugin_version": "1.0.0",
                     "auth_mode": "OAuth(PKCE)" if self._p._is_oauth else "api_key",
                     "auth_desc": desc,
                     "commands": [
                         {"name": "/lxdx bind <好友码>", "desc": "绑定玩家好友码"},
                         {
-                            "name": "/lxdx b50 [fc]",
+                            "name": "/lxdx b50 <好友码>",
                             "desc": "Best 50 (最佳35 + 最近15)",
                         },
                         {"name": "/lxdx song <名称/ID>", "desc": "查询歌曲信息"},
                         {
-                            "name": "/lxdx login [<码>]",
-                            "desc": "OAuth 授权登录 / 完成回调",
+                            "name": "/lxdx login <授权码>",
+                            "desc": "OAuth 授权登录",
                         },
                     ],
                 },
@@ -110,7 +109,7 @@ class MaimaiHandler:
             yield ev.image_result(url)
         else:
             yield ev.plain_result(
-                "/lxdx help|bind <好友码>|b50 [fc]|song <名称/ID>|login [<码>]"
+                "/lxdx help|bind <好友码>|b50 <好友码>|song <名称/ID>|login <授权码>"
             )
 
     # --- /lxdx bind ---
@@ -314,6 +313,10 @@ class MaimaiHandler:
             return
 
         song = res[0]
+        try:
+            song = await self._p._client.get_song(song.id)
+        except Exception as e:
+            logger.warning(f"[lxdx] failed to fetch detailed song info: {e}")
 
         # 获取好友码（仅API Key模式需要）
         fc = ""
@@ -323,20 +326,20 @@ class MaimaiHandler:
                 yield ev.plain_result("请先绑定好友码: /lxdx bind <好友码>")
                 return
 
-        # 如果未指定难度，查询所有难度
+        # 如果未指定难度，查询所有存在的难度
         if level_index == -1:
             found_scores = []
-            for idx in range(5):  # 0-4: basic, advanced, expert, master, remaster
+            for d in song.difficulty_details:
                 try:
-                    score = await self._p._client.get_player_best(
+                    sc = await self._p._client.get_player_best(
                         song_id=song.id,
-                        level_index=idx,
-                        song_type=song_type,
+                        level_index=d["difficulty"],
+                        song_type=d["type"],
                         fc=fc,
                         uid=uid,
                     )
-                    if score:
-                        found_scores.append((idx, score))
+                    if sc:
+                        found_scores.append((d["difficulty"], sc, d["type"]))
                 except Exception:
                     continue
 
@@ -377,14 +380,18 @@ class MaimaiHandler:
 
                 # 构建scores数组
                 scores_data = []
-                for idx, score in found_scores:
+                for idx, score, chart_type in found_scores:
                     scores_data.append(
                         {
                             "type": score.type,
-                            "difficulty_name": DIFFICULTY_NAMES[idx],
+                            "difficulty_name": DIFFICULTY_NAMES[idx]
+                            if idx < len(DIFFICULTY_NAMES)
+                            else f"LV{idx}",
                             "difficulty_class": DIFFICULTY_NAMES[idx]
                             .lower()
-                            .replace(":", ""),
+                            .replace(":", "")
+                            if idx < len(DIFFICULTY_NAMES)
+                            else "",
                             "level": score.level,
                             "achievements": score.achievements,
                             "rate": score.rate,
@@ -419,16 +426,37 @@ class MaimaiHandler:
             else:
                 # 纯文本输出
                 lines = [f"{song.title} 成绩:"]
-                for idx, score in found_scores:
-                    chart_type = "DX" if score.type == "dx" else "STD"
-                    diff_name = DIFFICULTY_NAMES[idx]
+                for idx, score, chart_type in found_scores:
+                    diff_name = (
+                        DIFFICULTY_NAMES[idx]
+                        if idx < len(DIFFICULTY_NAMES)
+                        else f"LV{idx}"
+                    )
+                    type_display = {
+                        "standard": "STD",
+                        "dx": "DX",
+                        "utage": "UTAGE",
+                    }.get(chart_type, chart_type.upper())
                     lines.append(
-                        f"{chart_type} {diff_name} {score.level}: {score.achievements:.4f}% ({score.rate.upper()})"
+                        f"{type_display} {diff_name} {score.level}: {score.achievements:.4f}% ({score.rate.upper()})"
                     )
                 yield ev.plain_result("\n".join(lines))
             return
 
         # 查询指定难度的成绩
+        if not song_type:
+            matching = [
+                d for d in song.difficulty_details if d["difficulty"] == level_index
+            ]
+            if not matching:
+                yield ev.plain_result(
+                    f"未找到难度: {song.title} {DIFFICULTY_NAMES[level_index] if level_index < len(DIFFICULTY_NAMES) else f'LV{level_index}'}"
+                )
+                return
+            song_type = next(
+                (d["type"] for d in matching if d["type"] == "standard"),
+                matching[0]["type"],
+            )
         try:
             score = await self._p._client.get_player_best(
                 song_id=song.id,

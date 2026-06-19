@@ -251,17 +251,17 @@ class ChunithmHandler:
                     "commands": [
                         {"name": "/lxchu bind <好友码>", "desc": "绑定玩家好友码"},
                         {
-                            "name": "/lxchu bests [fc]",
+                            "name": "/lxchu bests <好友码>",
                             "desc": "Best 30 + Selection 10 + New 20",
                         },
                         {
-                            "name": "/lxchu recent [fc]",
+                            "name": "/lxchu recent <好友码>",
                             "desc": "Recent 50 最近游玩",
                         },
                         {"name": "/lxchu song <名称/ID>", "desc": "查询歌曲信息"},
                         {
-                            "name": "/lxchu login [<码>]",
-                            "desc": "OAuth 授权登录 / 完成回调",
+                            "name": "/lxchu login <授权码>",
+                            "desc": "OAuth 授权登录",
                         },
                     ],
                 },

@@ -256,12 +256,19 @@ class LxnsClient:
         u = f"{b}/player/{fc}" if not self._is_oauth and fc else f"{b}/player"
         d = await self._api_get(u, uid)
         inner = d.get("data", d)
+        fc_value = inner.get("friend_code", fc)
+        if not isinstance(fc_value, str):
+            fc_value = str(fc_value)
         return PlayerInfo(
             name=inner.get("name", inner.get("nickname", "")),
             rating=inner.get("rating", 0),
-            friend_code=inner.get("friend_code", fc),
+            friend_code=fc_value,
             class_rank=inner.get("class_rank", 0),
+            course_rank=inner.get("course_rank", 0),
+            star=inner.get("star", 0),
+            trophy=inner.get("trophy"),
             icon=inner.get("icon"),
+            upload_time=inner.get("upload_time"),
         )
 
     async def get_b50(self, fc: str = "", uid: str = "") -> PlayerB50:
@@ -317,7 +324,7 @@ class LxnsClient:
             params.append(f"level_index={level_index}")
 
         if song_type:
-            params.append(f"type={song_type}")
+            params.append(f"song_type={song_type}")
 
         query = "&".join(params)
 
@@ -330,9 +337,10 @@ class LxnsClient:
             url = f"{b}/player/best?{query}"
 
         d = await self._api_get(url, uid)
-        # 提取data字段
         inner = d.get("data", d)
-        return self._parse_score(inner) if inner and inner.get("id") else None
+        return (
+            self._parse_score(inner) if inner and inner.get("id") is not None else None
+        )
 
     # --- 响应解析器 ---
 
@@ -341,26 +349,29 @@ class LxnsClient:
         bi = item.get("basic_info", {})
         dd = item.get("difficulties", {})
         diff_details = []
-        for chart_type in ("standard", "dx"):
+        for chart_type in ("standard", "dx", "utage"):
             for d in dd.get(chart_type, []):
                 nt = d.get("notes") or {}
-                diff_details.append(
-                    {
-                        "type": chart_type,
-                        "difficulty": d.get("difficulty", 0),
-                        "level": d.get("level", ""),
-                        "level_value": d.get("level_value", 0.0),
-                        "note_designer": d.get("note_designer", ""),
-                        "notes": {
-                            "total": nt.get("total", 0),
-                            "tap": nt.get("tap", 0),
-                            "hold": nt.get("hold", 0),
-                            "slide": nt.get("slide", 0),
-                            "touch": nt.get("touch", 0),
-                            "break": nt.get("break", 0),
-                        },
-                    }
-                )
+                detail = {
+                    "type": chart_type,
+                    "difficulty": d.get("difficulty", 0),
+                    "level": d.get("level", ""),
+                    "level_value": d.get("level_value", 0.0),
+                    "note_designer": d.get("note_designer", ""),
+                    "notes": {
+                        "total": nt.get("total", 0),
+                        "tap": nt.get("tap", 0),
+                        "hold": nt.get("hold", 0),
+                        "slide": nt.get("slide", 0),
+                        "touch": nt.get("touch", 0),
+                        "break": nt.get("break", 0),
+                    },
+                }
+                if chart_type == "utage":
+                    detail["kanji"] = d.get("kanji", "")
+                    detail["description"] = d.get("description", "")
+                    detail["is_buddy"] = d.get("is_buddy", False)
+                diff_details.append(detail)
         return SongInfo(
             id=item.get("id", 0),
             title=item.get("title", ""),
@@ -368,10 +379,11 @@ class LxnsClient:
             genre=item.get("genre", bi.get("genre", "")),
             bpm=item.get("bpm", bi.get("bpm", 0)),
             version=item.get("version", bi.get("from", 0)),
-            is_utage=item.get("is_utage", bi.get("is_utage", False)),
+            is_utage=item.get("id", 0) > 100000,
             map=item.get("map", ""),
             difficulty_details=diff_details,
             image_url=item.get("image_url", item.get("image", "")),
+            rights=item.get("rights", ""),
         )
 
     @staticmethod
@@ -398,11 +410,11 @@ class LxnsClient:
             achievement=item.get("achievements", item.get("achievement", 0)),
             dx_score=item.get("dx_score", item.get("delux_score", 0)),
             dx_rating=item.get("dx_rating", item.get("rating", 0)),
-            fc=item.get("fc", ""),
-            fs=item.get("fs", ""),
-            rate=item.get("rate", ""),
-            combo_status=item.get("combo_status", ""),
-            sync_status=item.get("sync_status", ""),
+            fc=item.get("fc") or "",
+            fs=item.get("fs") or "",
+            rate=item.get("rate") or "",
+            combo_status=item.get("combo_status") or "",
+            sync_status=item.get("sync_status") or "",
             play_time=item.get("play_time", None),
         )
 
@@ -427,13 +439,13 @@ class LxnsClient:
             level=item.get("level", ""),
             level_index=li,
             achievements=item.get("achievements", 0.0),
-            fc=item.get("fc", ""),
-            fs=item.get("fs", ""),
+            fc=item.get("fc") or "",
+            fs=item.get("fs") or "",
             dx_score=item.get("dx_score", 0),
             dx_star=item.get("dx_star", 0),
             dx_rating=item.get("dx_rating", 0.0),
-            rate=item.get("rate", ""),
-            type=item.get("type", ""),
+            rate=item.get("rate") or "",
+            type=item.get("type") or "",
             play_time=item.get("play_time"),
             upload_time=item.get("upload_time"),
             last_played_time=item.get("last_played_time"),
@@ -441,20 +453,15 @@ class LxnsClient:
 
     @classmethod
     def _parse_b50(cls, data: dict) -> PlayerB50:
-        """将 Best50 接口响应转换为 PlayerB50 模型（分离 best 和 recent 成绩列表）。"""
+        """将 Best50 接口响应转换为 PlayerB50 模型（standard 为 best，dx 为 recent）。"""
         inner = data.get("data", data)
-        best = [
-            cls._parse_record(i)
-            for i in inner.get("best", inner.get("charts", {}).get("best", []))
-        ]
-        recent = [
-            cls._parse_record(i)
-            for i in inner.get("recent", inner.get("charts", {}).get("recent", []))
-        ]
+        best = [cls._parse_record(i) for i in inner.get("standard", [])]
+        recent = [cls._parse_record(i) for i in inner.get("dx", [])]
         return PlayerB50(
             player_name=inner.get("name", inner.get("nickname", "")),
             rating=inner.get("rating", 0),
             class_rank=inner.get("class_rank", 0),
+            course_rank=inner.get("course_rank", 0),
             friend_code=inner.get("friend_code", ""),
             best=best,
             recent=recent,
