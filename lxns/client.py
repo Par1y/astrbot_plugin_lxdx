@@ -453,18 +453,13 @@ class LxnsClient:
 
     @classmethod
     def _parse_b50(cls, data: dict) -> PlayerB50:
-        """将 Best50 接口响应转换为 PlayerB50 模型（standard 为 best，dx 为 recent）。"""
+        """将 Best50 接口响应转换为 PlayerB50 模型（standard 为 Best 35，dx 为 Best 15）。"""
         inner = data.get("data", data)
-        best = [cls._parse_record(i) for i in inner.get("standard", [])]
-        recent = [cls._parse_record(i) for i in inner.get("dx", [])]
         return PlayerB50(
-            player_name=inner.get("name", inner.get("nickname", "")),
-            rating=inner.get("rating", 0),
-            class_rank=inner.get("class_rank", 0),
-            course_rank=inner.get("course_rank", 0),
-            friend_code=inner.get("friend_code", ""),
-            best=best,
-            recent=recent,
+            standard_total=inner.get("standard_total", 0),
+            dx_total=inner.get("dx_total", 0),
+            standard=[cls._parse_score(i) for i in inner.get("standard", [])],
+            dx=[cls._parse_score(i) for i in inner.get("dx", [])],
         )
 
     async def close(self) -> None:

@@ -171,15 +171,17 @@ class MaimaiHandler:
         if t:
             if self._p._debug:
                 logger.info("[lxdx] rendering b50")
+            pi = await self._p._client.get_player_info(
+                fc=fc if not self._p._is_oauth else "",
+                uid=u if self._p._is_oauth else "",
+            )
             url = await self._p.render_html(
                 t,
                 {
-                    "player_name": b50.player_name,
-                    "rating": b50.rating,
-                    "friend_code": b50.friend_code,
-                    "class_rank": b50.class_rank,
-                    "best": self._rec_rows(b50.best),
-                    "recent": self._rec_rows(b50.recent),
+                    "player_name": pi.name if pi else "",
+                    "rating": (b50.standard_total + b50.dx_total) if b50 else 0,
+                    "best": self._rec_rows(b50.standard),
+                    "recent": self._rec_rows(b50.dx),
                 },
                 options=JINJA_OPTIONS,
             )
@@ -544,7 +546,7 @@ class MaimaiHandler:
     def _rec_rows(recs: list) -> list:
         return [
             {
-                "title": r.title,
+                "title": r.title if hasattr(r, "title") else r.song_name,
                 "difficulty_short": DIFFICULTY_SHORT[r.level_index]
                 if r.level_index < 5
                 else "?",
@@ -555,7 +557,7 @@ class MaimaiHandler:
                 else "",
                 "achievement_pct": r.achievement_pct,
                 "dx_score": r.dx_score,
-                "level_value": r.level_value,
+                "level_value": r.level if hasattr(r, "level") else r.level_value,
                 "rank": r.rank_display,
             }
             for r in recs
@@ -586,12 +588,13 @@ class MaimaiHandler:
 
     @staticmethod
     def _b50_text(b50) -> str:
-        ls = [f"{b50.player_name}  Rating: {b50.rating}", "= Best 35 ="]
-        for i, r in enumerate(b50.best, 1):
+        total = b50.standard_total + b50.dx_total
+        ls = [f"Rating: {total}", "= Best 35 ="]
+        for i, r in enumerate(b50.standard, 1):
             d = DIFFICULTY_SHORT[r.level_index] if r.level_index < 5 else "?"
             ls.append(f"#{i} {r.title} [{d}] {r.achievement_pct:.4f}% DX:{r.dx_score}")
         ls.append("= Recent 15 =")
-        for i, r in enumerate(b50.recent, 1):
+        for i, r in enumerate(b50.dx, 1):
             d = DIFFICULTY_SHORT[r.level_index] if r.level_index < 5 else "?"
             ls.append(f"#{i} {r.title} [{d}] {r.achievement_pct:.4f}% DX:{r.dx_score}")
         return "\n".join(ls)

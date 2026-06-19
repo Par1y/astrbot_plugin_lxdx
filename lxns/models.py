@@ -128,20 +128,6 @@ class PlayerRecord:
         return "D"
 
 
-@dataclass
-class PlayerB50:
-    """玩家 Best 50 数据：best 为新曲 Best 35，recent 为旧曲 Recent 15。"""
-
-    player_name: str
-    rating: int
-    class_rank: int
-    friend_code: str
-    best: list[PlayerRecord]
-    recent: list[PlayerRecord]
-    course_rank: int = 0
-    rank: int = 0
-
-
 # --- 认证 ---
 
 
@@ -245,6 +231,16 @@ class Score:
         if a >= 40.0:
             return "C"
         return "D"
+
+
+@dataclass
+class PlayerB50:
+    """玩家 Best 50 数据：standard 为旧版本 Best 35，dx 为现版本 Best 15。"""
+
+    standard_total: int
+    dx_total: int
+    standard: list[Score]
+    dx: list[Score]
 
 
 # --- 自定义异常 ---

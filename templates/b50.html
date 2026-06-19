@@ -1,147 +1,281 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<link href="https://fontsapi.zeoseven.com/243/main/result.css" onload="this.rel='stylesheet'" rel="preload" as="style" crossorigin />
-<noscript><link rel="stylesheet" href="https://fontsapi.zeoseven.com/243/main/result.css" /></noscript>
-<style>
-  html, body { width: 100vw; height: 100vh; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: "寒蝉半圆体", "PingFang SC", "Microsoft YaHei", sans-serif;
-    font-weight: normal;
-    background: #f0f0f0;
-    padding: 1.5%;
-    display: flex;
-  }
-  .card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 2.5%;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    gap: 1.5%;
-    overflow: hidden;
-  }
-  .player-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 1.5%;
-    border-bottom: 2px solid #e6b422;
-    flex-shrink: 0;
-  }
-  .player-name { font-size: 5vw; font-weight: bold; color: #e6b422; text-align: right; }
-  .player-rating { font-size: 3.5vw; color: #3d3b8e; }
-  .player-code { font-size: 2vw; color: #888; }
-  .section-header {
-    font-size: 2.8vw; color: #3d3b8e; font-weight: bold;
-    border-bottom: 1px solid #eee; padding-bottom: 0.5%;
-    flex-shrink: 0;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 2vw;
-  }
-  th, td {
-    padding: 0.8% 1.5%;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-  }
-  th {
-    color: #888;
-    font-weight: normal;
-    font-size: 1.8vw;
-    border-bottom: 2px solid #eee;
-  }
-  tbody tr:nth-child(even) td { background: #f5f5f5; }
-  tbody tr:nth-child(odd) td { background: #fff; }
-  .idx { color: #999; text-align: center; width: 5%; }
-  .title { max-width: 35%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #000; }
-  .diff { text-align: center; width: 8%; }
-  .basic { color: #22bb5b; } .advanced { color: #d4a017; } .expert { color: #d63350; } .master { color: #7b4bb8; } .remaster { color: #a44fd4; }
-  .ach { text-align: right; font-variant-numeric: tabular-nums; width: 15%; color: #000; }
-  .score { text-align: right; font-variant-numeric: tabular-nums; width: 12%; color: #000; }
-  .rating { text-align: right; font-variant-numeric: tabular-nums; width: 8%; color: #000; }
-  .footer {
-    text-align: center; font-size: 1.8vw; color: #aaa;
-    padding-top: 1%; border-top: 1px solid #eee; flex-shrink: 0;
-  }
-  .empty-row td { text-align: center; color: #aaa; padding: 2%; }
-</style>
-</head>
-<body>
-  <div class="card">
-    <div class="player-header">
-      <div>
-        <div class="player-code">{% if friend_code %}{{ friend_code }}{% endif %} · Class {{ class_rank }}</div>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body {
+        width: 100vw;
+        min-height: 100vh;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "寒蝉半圆体", "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-weight: normal;
+        background: #f0f0f0;
+        padding: 1.5%;
+        display: flex;
+      }
+      .container {
+        background: #fff;
+        border-radius: 14px;
+        padding: 2.5%;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        flex: 1;
+      }
+      .player-header {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding-bottom: 1.5%;
+        margin-bottom: 2%;
+        border-bottom: 2px solid #e6b422;
+        flex-shrink: 0;
+      }
+      .player-left {
+        text-align: left;
+      }
+      .player-right {
+        text-align: right;
+      }
+      .player-name {
+        font-size: 5vw;
+        font-weight: bold;
+        color: #e6b422;
+      }
+      .player-rating {
+        font-size: 3.5vw;
+        color: #3d3b8e;
+      }
+      .player-code {
+        font-size: 2vw;
+        color: #888;
+      }
+      .section {
+        margin-bottom: 2.5%;
+      }
+      .section-header {
+        font-size: 2.8vw;
+        color: #3d3b8e;
+        font-weight: bold;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5%;
+        margin-bottom: 1.5%;
+      }
+      .card-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2%;
+      }
+      .card-item {
+        width: calc(20% - 0.96%);
+        background: #fafafa;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        padding: 1.2%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5%;
+      }
+      .card-item:hover {
+        background: #f0f0f0;
+      }
+      .card-title {
+        font-size: 1.8vw;
+        font-weight: bold;
+        color: #000;
+        overflow-wrap: break-word;
+        word-break: break-all;
+        line-height: 1.3;
+      }
+      .card-diff {
+        font-size: 1.6vw;
+        padding: 0.2% 0.6%;
+        border-radius: 4px;
+        display: inline-block;
+        align-self: flex-start;
+      }
+      .card-diff.basic {
+        background: #e8f5e9;
+        color: #22bb5b;
+      }
+      .card-diff.advanced {
+        background: #fff8e1;
+        color: #d4a017;
+      }
+      .card-diff.expert {
+        background: #fce4ec;
+        color: #d63350;
+      }
+      .card-diff.master {
+        background: #ede7f6;
+        color: #7b4bb8;
+      }
+      .card-diff.remaster {
+        background: #e8eaf6;
+        color: #a44fd4;
+      }
+      .card-achievement {
+        font-size: 2vw;
+        font-weight: bold;
+        font-variant-numeric: tabular-nums;
+        color: #333;
+      }
+      .card-score {
+        font-size: 1.8vw;
+        font-variant-numeric: tabular-nums;
+        color: #333;
+      }
+      .card-rating {
+        font-size: 1.6vw;
+        color: #3d3b8e;
+        font-variant-numeric: tabular-nums;
+      }
+      .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.4vw;
+        margin-top: auto;
+      }
+      .rank {
+        font-weight: bold;
+      }
+      .rank-ap-plus {
+        color: #ffd700;
+      }
+      .rank-ap {
+        color: #ffa500;
+      }
+      .rank-sss-plus {
+        color: #ff6b9d;
+      }
+      .rank-sss {
+        color: #ff8c00;
+      }
+      .rank-ss-plus {
+        color: #ffa500;
+      }
+      .rank-ss {
+        color: #ffa500;
+      }
+      .rank-s-plus {
+        color: #d4a017;
+      }
+      .rank-s {
+        color: #d4a017;
+      }
+      .rank-aaa {
+        color: #22bb5b;
+      }
+      .rank-aa {
+        color: #999;
+      }
+      .rank-a {
+        color: #999;
+      }
+      .rank-bbb {
+        color: #999;
+      }
+      .rank-bb {
+        color: #999;
+      }
+      .rank-b {
+        color: #999;
+      }
+      .rank-c {
+        color: #999;
+      }
+      .rank-d {
+        color: #999;
+      }
+      .footer {
+        text-align: center;
+        font-size: 1.8vw;
+        color: #aaa;
+        padding-top: 1.5%;
+        border-top: 1px solid #eee;
+        flex-shrink: 0;
+      }
+      .empty-row {
+        text-align: center;
+        color: #aaa;
+        padding: 2%;
+        font-size: 2vw;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="player-header">
+        <div class="player-right">
+          <div class="player-name">{{ player_name }}</div>
+          <div class="player-rating">Rating: {{ rating }}</div>
+        </div>
       </div>
-      <div class="player-name">{{ player_name }}</div>
-      <div class="player-rating">Rating: {{ rating }}</div>
+
+      <div class="section">
+        <div class="section-header">BEST {{ best|length }}</div>
+        <div class="card-grid">
+          {% if best|length == 0 %}
+          <div class="empty-row">暂无数据</div>
+          {% endif %} {% for rec in best %}
+          <div class="card-item">
+            <div class="card-title" title="{{ rec.title }}">
+              {{ rec.title }}
+            </div>
+            <div class="card-diff {{ rec.difficulty_css }}">
+              {{ rec.difficulty_short }}
+            </div>
+            <div class="card-achievement">
+              {{ "%.4f" | format(rec.achievement_pct) }}%
+            </div>
+            <div class="card-score">{{ rec.dx_score }}</div>
+            <div class="card-rating">Lv. {{ rec.level_value }}</div>
+            <div class="card-meta">
+              <span class="rank rank-{{ rec.rank|lower|replace('+', '-plus') }}"
+                >{{ rec.rank }}</span
+              >
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">RECENT {{ recent|length }}</div>
+        <div class="card-grid">
+          {% if recent|length == 0 %}
+          <div class="empty-row">暂无数据</div>
+          {% endif %} {% for rec in recent %}
+          <div class="card-item">
+            <div class="card-title" title="{{ rec.title }}">
+              {{ rec.title }}
+            </div>
+            <div class="card-diff {{ rec.difficulty_css }}">
+              {{ rec.difficulty_short }}
+            </div>
+            <div class="card-achievement">
+              {{ "%.4f" | format(rec.achievement_pct) }}%
+            </div>
+            <div class="card-score">{{ rec.dx_score }}</div>
+            <div class="card-rating">Lv. {{ rec.level_value }}</div>
+            <div class="card-meta">
+              <span class="rank rank-{{ rec.rank|lower|replace('+', '-plus') }}"
+                >{{ rec.rank }}</span
+              >
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="footer">数据来源：落雪查分器 (maimai.lxns.net)</div>
     </div>
-
-    <div class="section-header">Best 35 (新曲) · {{ best|length }} 首</div>
-    <table>
-      <thead>
-        <tr>
-          <th class="idx">#</th>
-          <th>曲目</th>
-          <th class="diff">难度</th>
-          <th class="ach">达成率</th>
-          <th class="score">DX分数</th>
-          <th class="rating">定数</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if best|length == 0 %}
-        <tr><td colspan="6" class="empty-row">暂无数据</td></tr>
-        {% endif %}
-        {% for rec in best %}
-        <tr>
-          <td class="idx">{{ loop.index }}</td>
-          <td class="title" title="{{ rec.title }}">{{ rec.title }}</td>
-          <td class="diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }}</td>
-          <td class="ach">{{ "%.4f" | format(rec.achievement_pct) }}%</td>
-          <td class="score">{{ rec.dx_score }}</td>
-          <td class="rating">{{ rec.level_value }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="section-header">Recent 15 (旧曲) · {{ recent|length }} 首</div>
-    <table>
-      <thead>
-        <tr>
-          <th class="idx">#</th>
-          <th>曲目</th>
-          <th class="diff">难度</th>
-          <th class="ach">达成率</th>
-          <th class="score">DX分数</th>
-          <th class="rating">定数</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if recent|length == 0 %}
-        <tr><td colspan="6" class="empty-row">暂无数据</td></tr>
-        {% endif %}
-        {% for rec in recent %}
-        <tr>
-          <td class="idx">{{ loop.index }}</td>
-          <td class="title" title="{{ rec.title }}">{{ rec.title }}</td>
-          <td class="diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }}</td>
-          <td class="ach">{{ "%.4f" | format(rec.achievement_pct) }}%</td>
-          <td class="score">{{ rec.dx_score }}</td>
-          <td class="rating">{{ rec.level_value }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="footer">数据来源：落雪查分器 (maimai.lxns.net)</div>
-  </div>
-</body>
+  </body>
 </html>
