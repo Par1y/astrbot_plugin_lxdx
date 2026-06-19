@@ -106,7 +106,7 @@
           <td class="diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }}</td>
           <td class="ach">{{ "%.4f" | format(rec.achievement_pct) }}%</td>
           <td class="score">{{ rec.dx_score }}</td>
-          <td class="rating">{{ "%.1f" | format(rec.level_value) }}</td>
+          <td class="rating">{{ rec.level_value }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -135,7 +135,7 @@
           <td class="diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }}</td>
           <td class="ach">{{ "%.4f" | format(rec.achievement_pct) }}%</td>
           <td class="score">{{ rec.dx_score }}</td>
-          <td class="rating">{{ "%.1f" | format(rec.level_value) }}</td>
+          <td class="rating">{{ rec.level_value }}</td>
         </tr>
         {% endfor %}
       </tbody>
