@@ -26,7 +26,7 @@ SCOPE = "read_player read_user_profile"
 @register(
     "astrbot_plugin_lxdx",
     "Par1y",
-    "国服舞萌DX/中二节奏插件，使用落雪接口，支持 b50、bests、曲目信息等功能。",
+    "国服舞萌DX/中二节奏插件，使用落雪接口，支持 b50、曲目信息等功能。",
     "0.4.1",
 )
 class LxdxPlugin(Star):
@@ -120,7 +120,7 @@ class LxdxPlugin(Star):
             "song_info",
             "song_score",
             "chunithm_help",
-            "chunithm_bests",
+            "chunithm_b50",
             "chunithm_song_info",
             "chunithm_song_score",
             "chunithm_recent",
@@ -323,7 +323,7 @@ class LxdxPlugin(Star):
             "/lxchu",
             self._chu_client,
             self._st.chu_binding_key,
-            "bests",
+            "b50",
             "Chunithm",
         ):
             yield r
@@ -344,11 +344,11 @@ class LxdxPlugin(Star):
         async for r in self._chunithm.bind(ev):
             yield r
 
-    # --- /lxchu bests ---
+    # --- /lxchu b50 ---
 
-    @lxchu_group.command("bests")
-    async def _chu_bests(self, ev: AstrMessageEvent):
-        """查询 Best 30 + Selection 10 + New 20：/lxchu bests [friend_code]。"""
+    @lxchu_group.command("b50")
+    async def _chu_b50(self, ev: AstrMessageEvent):
+        """查询 Best 30 + Selection 10 + New 20：/lxchu b50 [friend_code]。"""
         async for r in self._chunithm.bests(ev):
             yield r
 
