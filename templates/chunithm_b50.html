@@ -2,175 +2,185 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<link href="https://fontsapi.zeoseven.com/413/main/result.css" onload="this.rel='stylesheet'" rel="preload" as="style" crossorigin />
-<noscript
-  ><link
-  href="https://fontsapi.zeoseven.com/851/main/result.css"
-  onload="this.rel='stylesheet'"
-  rel="preload"
-  as="style"
-  crossorigin
-/>
-<noscript
-  ><link
-    rel="stylesheet"
-    href="https://fontsapi.zeoseven.com/851/main/result.css"
-  />
-</noscript>
 <style>
-  html, body { width: 100vw; height: 100vh; }
+  html, body { width: 100vw; min-height: 100vh; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: "KURIYAMAKOUCHIFONT_N", "PingFang SC", "Microsoft YaHei", sans-serif;
-    font-weight: normal;
     background: #f0f0f0;
     padding: 1.5%;
     display: flex;
   }
-  .card {
+  .container {
     background: #fff;
     border-radius: 14px;
     padding: 2.5%;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
     flex: 1;
-    gap: 1.5%;
-    overflow: hidden;
   }
   .player-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding-bottom: 1.5%; border-bottom: 2px solid #e6b422; flex-shrink: 0;
+    display: flex; align-items: center; gap: 2%;
+    padding-bottom: 1.5%; margin-bottom: 2%;
+    border-bottom: 2px solid #e6b422;
   }
-  .player-name { font-size: 5vw; font-weight: bold; color: #e6b422; text-align: right; }
+  .avatar {
+    width: 12vw; height: 12vw; border-radius: 50%;
+    overflow: hidden; background: #eee; flex-shrink: 0;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .player-info { flex: 1; }
+  .player-name { font-size: 5vw; font-weight: bold; color: #e6b422; }
   .player-rating { font-size: 3.5vw; color: #3d3b8e; }
-  .player-code { font-size: 2vw; color: #888; }
+  .section { margin-bottom: 2.5%; }
   .section-header {
     font-size: 2.8vw; color: #3d3b8e; font-weight: bold;
-    border-bottom: 1px solid #eee; padding-bottom: 0.5%;
-    flex-shrink: 0;
+    border-bottom: 1px solid #eee; padding-bottom: 0.5%; margin-bottom: 1.5%;
   }
-  table { width: 100%; border-collapse: collapse; font-size: 2vw; }
-  th, td { padding: 0.8% 1.2%; text-align: left; border-bottom: 1px solid #eee; }
-  th { color: #888; font-weight: normal; font-size: 1.8vw; border-bottom: 2px solid #eee; }
-  tbody tr:nth-child(even) td { background: #f5f5f5; }
-  tbody tr:nth-child(odd) td { background: #fff; }
-  .idx { color: #999; text-align: center; width: 4%; }
-  .title { max-width: 28%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #000; }
-  .diff { text-align: center; width: 12%; }
-  .basic { color: #22bb5b; } .advanced { color: #d4a017; } .expert { color: #d63350; }
-  .master { color: #7b4bb8; } .ultima { color: #ba67f9; } .worlds-end { color: #e040fb; }
-  .score-num { text-align: right; font-variant-numeric: tabular-nums; width: 14%; color: #000; }
-  .rating { text-align: right; font-variant-numeric: tabular-nums; width: 10%; color: #000; }
-  .rank { text-align: center; font-weight: bold; font-size: 1.9vw; width: 8%; }
-  .status-col { text-align: center; font-size: 1.6vw; width: 16%; }
-  .clear-tag { display: inline-block; padding: 0.2% 0.8%; border-radius: 3px; font-size: 1.5vw; }
-  .clr-hard { background: #f6ba31; color: #fff; } .clr-clear { background: #22bb5b; color: #fff; }
-  .clr-absolute { background: #d63350; color: #fff; } .clr-catastrophy { background: #7b4bb8; color: #fff; }
-  .clr-brave { background: #ff6b9d; color: #fff; }
-  .fc-tag { display: inline-block; padding: 0.2% 0.8%; border-radius: 3px; font-size: 1.5vw; margin-left: 0.3%; }
-  .fc-ajc { background: #ffd700; color: #000; } .fc-aj { background: #ff8c00; color: #fff; }
-  .fc-fc { background: #22bb5b; color: #fff; }
+  .card-grid {
+    display: flex; flex-wrap: wrap; gap: 1.2%;
+  }
+  .card-item {
+    width: calc(20% - 0.96%);   /* 5 per row, 5 * 20% + 4 * 1.2% = 104.8%, gap accounted */
+    background: #fafafa;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    padding: 1.2%;
+    display: flex; flex-direction: column; gap: 0.5%;
+    transition: background 0.2s;
+  }
+  .card-item:hover { background: #f0f0f0; }
+  .card-title {
+    font-size: 1.8vw; font-weight: bold; color: #000;
+    overflow-wrap: break-word;
+    word-break: break-all;
+    line-height: 1.3;
+  }
+  .card-diff {
+    font-size: 1.6vw; padding: 0.2% 0.6%; border-radius: 4px;
+    display: inline-block; align-self: flex-start;
+  }
+  .card-diff.basic { background: #e8f5e9; color: #22bb5b; }
+  .card-diff.advanced { background: #fff8e1; color: #d4a017; }
+  .card-diff.expert { background: #fce4ec; color: #d63350; }
+  .card-diff.master { background: #ede7f6; color: #7b4bb8; }
+  .card-diff.ultima { background: #f3e5f5; color: #ba67f9; }
+  .card-diff.worlds-end { background: #fce4ec; color: #e040fb; }
+  .card-score {
+    font-size: 2vw; font-weight: bold; font-variant-numeric: tabular-nums;
+    color: #333;
+  }
+  .card-rating {
+    font-size: 1.6vw; color: #3d3b8e; font-variant-numeric: tabular-nums;
+  }
+  .card-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 1.4vw; color: #888;
+  }
+  .rank { font-weight: bold; }
   .rank-sssp { color: #ff6b9d; } .rank-sss { color: #ff8c00; }
   .rank-ss { color: #ffa500; } .rank-s { color: #d4a017; }
   .rank-aaa { color: #22bb5b; } .rank-a { color: #999; }
-  .footer { text-align: center; font-size: 1.8vw; color: #aaa; padding-top: 1%; border-top: 1px solid #eee; flex-shrink: 0; }
-  .empty-row td { text-align: center; color: #aaa; padding: 2%; }
+  .clear-tag { padding: 0.1% 0.5%; border-radius: 3px; font-size: 1.2vw; }
+  .clr-hard { background: #f6ba31; color: #fff; }
+  .clr-clear { background: #22bb5b; color: #fff; }
+  .clr-absolute { background: #d63350; color: #fff; }
+  .clr-catastrophy { background: #7b4bb8; color: #fff; }
+  .clr-brave { background: #ff6b9d; color: #fff; }
+  .fc-tag { padding: 0.1% 0.5%; border-radius: 3px; font-size: 1.2vw; margin-left: 0.2%; }
+  .fc-ajc { background: #ffd700; color: #000; }
+  .fc-aj { background: #ff8c00; color: #fff; }
+  .fc-fc { background: #22bb5b; color: #fff; }
+  .footer {
+    text-align: center; font-size: 1.8vw; color: #aaa;
+    padding-top: 1.5%; border-top: 1px solid #eee;
+  }
+  .empty-row {
+    text-align: center; color: #aaa; padding: 2%; font-size: 2vw;
+    width: 100%;
+  }
 </style>
 </head>
 <body>
-  <div class="card">
+  <div class="container">
+    <!-- player header -->
     <div class="player-header">
-      <div>
-        <div class="player-code">{% if friend_code %}{{ friend_code }}{% endif %}</div>
+      <div class="avatar">
+        {% if character_uri %}<img src="{{ character_uri }}" alt="character">{% endif %}
       </div>
-      <div class="player-name">{{ player_name }}</div>
-      <div class="player-rating">Rating: {{ "%.2f" | format(rating) }}</div>
+      <div class="player-info">
+        <div class="player-name">{{ player_name }}</div>
+        <div class="player-rating">Rating: {{ "%.2f" | format(rating) }}</div>
+      </div>
     </div>
 
-    <div class="section-header">Best 30 · {{ bests|length }} 首</div>
-    <table>
-      <thead><tr>
-        <th class="idx">#</th><th>曲目</th><th class="diff">难度</th>
-        <th class="score-num">分数</th><th class="rating">Rating</th><th class="rank">评级</th><th class="status-col">状态</th>
-      </tr></thead>
-      <tbody>
+    <!-- Best 30 -->
+    <div class="section">
+      <div class="section-header">BEST {{ bests|length }}</div>
+      <div class="card-grid">
         {% if bests|length == 0 %}
-        <tr><td colspan="7" class="empty-row">暂无数据</td></tr>
+        <div class="empty-row">暂无数据</div>
         {% endif %}
         {% for rec in bests %}
-        <tr>
-          <td class="idx">{{ loop.index }}</td>
-          <td class="title" title="{{ rec.song_name }}">{{ rec.song_name }}</td>
-          <td class="diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }} {{ rec.level }}</td>
-          <td class="score-num">{{ rec.score }}</td>
-          <td class="rating">{{ "%.2f" | format(rec.rating) }}</td>
-          <td class="rank rank-{{ rec.rank }}">{{ rec.rank_display }}</td>
-          <td class="status-col">
+        <div class="card-item">
+          <div class="card-title" title="{{ rec.song_name }}">{{ rec.song_name }}</div>
+          <div class="card-diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }} {{ rec.level }}</div>
+          <div class="card-score">{{ rec.score }}</div>
+          <div class="card-rating">{{ "%.2f" | format(rec.rating) }}</div>
+          <div class="card-meta">
+            <span class="rank rank-{{ rec.rank }}">{{ rec.rank_display }}</span>
             <span class="clear-tag clr-{{ rec.clear }}">{{ rec.clear_display }}</span>
             {% if rec.fc_display %}<span class="fc-tag fc-{{ rec.full_combo }}">{{ rec.fc_display }}</span>{% endif %}
-            {% if rec.full_chain %}<span class="fc-tag">FC</span>{% endif %}
-          </td>
-        </tr>
+          </div>
+        </div>
         {% endfor %}
-      </tbody>
-    </table>
+      </div>
+    </div>
 
-    <div class="section-header">Selection 10 · {{ selections|length }} 首</div>
-    <table>
-      <thead><tr>
-        <th class="idx">#</th><th>曲目</th><th class="diff">难度</th>
-        <th class="score-num">分数</th><th class="rating">Rating</th><th class="rank">评级</th><th class="status-col">状态</th>
-      </tr></thead>
-      <tbody>
-        {% if selections|length == 0 %}
-        <tr><td colspan="7" class="empty-row">暂无数据</td></tr>
-        {% endif %}
-        {% for rec in selections %}
-        <tr>
-          <td class="idx">{{ loop.index }}</td>
-          <td class="title" title="{{ rec.song_name }}">{{ rec.song_name }}</td>
-          <td class="diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }} {{ rec.level }}</td>
-          <td class="score-num">{{ rec.score }}</td>
-          <td class="rating">{{ "%.2f" | format(rec.rating) }}</td>
-          <td class="rank rank-{{ rec.rank }}">{{ rec.rank_display }}</td>
-          <td class="status-col">
-            <span class="clear-tag clr-{{ rec.clear }}">{{ rec.clear_display }}</span>
-            {% if rec.fc_display %}<span class="fc-tag fc-{{ rec.full_combo }}">{{ rec.fc_display }}</span>{% endif %}
-            {% if rec.full_chain %}<span class="fc-tag">FC</span>{% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="section-header">New 20 (新曲) · {{ new_bests|length }} 首</div>
-    <table>
-      <thead><tr>
-        <th class="idx">#</th><th>曲目</th><th class="diff">难度</th>
-        <th class="score-num">分数</th><th class="rating">Rating</th><th class="rank">评级</th><th class="status-col">状态</th>
-      </tr></thead>
-      <tbody>
+    <!-- New 20 -->
+    <div class="section">
+      <div class="section-header">NEW {{ new_bests|length }}</div>
+      <div class="card-grid">
         {% if new_bests|length == 0 %}
-        <tr><td colspan="7" class="empty-row">暂无数据</td></tr>
+        <div class="empty-row">暂无数据</div>
         {% endif %}
         {% for rec in new_bests %}
-        <tr>
-          <td class="idx">{{ loop.index }}</td>
-          <td class="title" title="{{ rec.song_name }}">{{ rec.song_name }}</td>
-          <td class="diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }} {{ rec.level }}</td>
-          <td class="score-num">{{ rec.score }}</td>
-          <td class="rating">{{ "%.2f" | format(rec.rating) }}</td>
-          <td class="rank rank-{{ rec.rank }}">{{ rec.rank_display }}</td>
-          <td class="status-col">
+        <div class="card-item">
+          <div class="card-title" title="{{ rec.song_name }}">{{ rec.song_name }}</div>
+          <div class="card-diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }} {{ rec.level }}</div>
+          <div class="card-score">{{ rec.score }}</div>
+          <div class="card-rating">{{ "%.2f" | format(rec.rating) }}</div>
+          <div class="card-meta">
+            <span class="rank rank-{{ rec.rank }}">{{ rec.rank_display }}</span>
             <span class="clear-tag clr-{{ rec.clear }}">{{ rec.clear_display }}</span>
             {% if rec.fc_display %}<span class="fc-tag fc-{{ rec.full_combo }}">{{ rec.fc_display }}</span>{% endif %}
-            {% if rec.full_chain %}<span class="fc-tag">FC</span>{% endif %}
-          </td>
-        </tr>
+          </div>
+        </div>
         {% endfor %}
-      </tbody>
-    </table>
+      </div>
+    </div>
+
+    <!-- Selection 10 -->
+    <div class="section">
+      <div class="section-header">SELECTION {{ selections|length }}</div>
+      <div class="card-grid">
+        {% if selections|length == 0 %}
+        <div class="empty-row">暂无数据</div>
+        {% endif %}
+        {% for rec in selections %}
+        <div class="card-item">
+          <div class="card-title" title="{{ rec.song_name }}">{{ rec.song_name }}</div>
+          <div class="card-diff {{ rec.difficulty_css }}">{{ rec.difficulty_short }} {{ rec.level }}</div>
+          <div class="card-score">{{ rec.score }}</div>
+          <div class="card-rating">{{ "%.2f" | format(rec.rating) }}</div>
+          <div class="card-meta">
+            <span class="rank rank-{{ rec.rank }}">{{ rec.rank_display }}</span>
+            <span class="clear-tag clr-{{ rec.clear }}">{{ rec.clear_display }}</span>
+            {% if rec.fc_display %}<span class="fc-tag fc-{{ rec.full_combo }}">{{ rec.fc_display }}</span>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
 
     <div class="footer">数据来源：落雪查分器 (maimai.lxns.net)</div>
   </div>

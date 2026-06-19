@@ -39,6 +39,19 @@ class ChunithmHandler:
     def __init__(self, plugin):
         self._p = plugin
 
+    async def _get_character_uri(self, pi) -> str:
+        """获取玩家角色立绘 Data URI，磁盘缓存由 AssetManager 处理。"""
+        if not pi or not pi.character or not isinstance(pi.character, dict):
+            return ""
+        char_id = pi.character.get("id", 0)
+        if not char_id:
+            return ""
+        try:
+            return await self._p._am.get_chunithm_character_data_uri(char_id)
+        except Exception as e:
+            logger.warning(f"[lxdx] failed to fetch Chunithm character: {e}")
+            return ""
+
     @staticmethod
     def _args(ev: AstrMessageEvent, n: int) -> list:
         return ev.message_str.strip().split()[n:]
@@ -320,16 +333,18 @@ class ChunithmHandler:
                 yield ev.plain_result(str(e))
                 return
 
-        t = self._p._tmpl.get("chunithm_bests")
+        t = self._p._tmpl.get("chunithm_b50")
         if t:
             if self._p._debug:
-                logger.info("[lxdx] rendering chunithm_bests")
+                logger.info("[lxdx] rendering chunithm_b50")
+            character_uri = await self._get_character_uri(pi)
             url = await self._p.render_html(
                 t,
                 {
                     "player_name": pi.name,
                     "rating": pi.rating,
                     "friend_code": pi.friend_code,
+                    "character_uri": character_uri,
                     "bests": self._chu_score_rows(bests.bests),
                     "selections": self._chu_score_rows(bests.selections),
                     "new_bests": self._chu_score_rows(bests.new_bests),
@@ -568,16 +583,7 @@ class ChunithmHandler:
                     logger.info(
                         f"[lxdx] Chunithm player info fetched: name={pi.name if pi else 'None'}, rating={pi.rating if pi else 0}"
                     )
-                if pi and pi.character and isinstance(pi.character, dict):
-                    char_id = pi.character.get("id", 0)
-                    if char_id:
-                        if self._p._debug:
-                            logger.info(
-                                f"[lxdx] fetching Chunithm character for id={char_id}"
-                            )
-                        character_uri = (
-                            await self._p._am.get_chunithm_character_data_uri(char_id)
-                        )
+                character_uri = await self._get_character_uri(pi)
             except Exception as e:
                 logger.warning(f"[lxdx] failed to fetch Chunithm player info: {e}")
                 pi = None
@@ -667,16 +673,7 @@ class ChunithmHandler:
                     logger.info(
                         f"[lxdx] Chunithm player info fetched: name={pi.name if pi else 'None'}, rating={pi.rating if pi else 0}"
                     )
-                if pi and pi.character and isinstance(pi.character, dict):
-                    char_id = pi.character.get("id", 0)
-                    if char_id:
-                        if self._p._debug:
-                            logger.info(
-                                f"[lxdx] fetching Chunithm character for id={char_id}"
-                            )
-                        character_uri = (
-                            await self._p._am.get_chunithm_character_data_uri(char_id)
-                        )
+                character_uri = await self._get_character_uri(pi)
             except Exception as e:
                 logger.warning(f"[lxdx] failed to fetch Chunithm player info: {e}")
                 pi = None
