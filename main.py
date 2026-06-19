@@ -27,7 +27,7 @@ SCOPE = "read_player read_user_profile"
     "astrbot_plugin_lxdx",
     "Par1y",
     "国服舞萌DX/中二节奏插件，使用落雪接口，支持 b50、曲目信息等功能。",
-    "0.4.1",
+    "0.4.2",
 )
 class LxdxPlugin(Star):
     """国服舞萌 DX / 中二节奏查分插件。

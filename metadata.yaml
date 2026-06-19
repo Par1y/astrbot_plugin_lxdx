@@ -2,7 +2,7 @@ name: astrbot_plugin_lxdx
 display_name: 落雪DX
 desc: 国服舞萌DX/中二节奏插件，使用落雪（lxns）接口，支持 b50、bests、曲目信息等功能。
 short_desc: 国服舞萌DX/中二节奏插件，支持 b50、bests、曲目查询。
-version: v0.4.1
+version: v0.4.2
 author: Par1y
 repo: https://github.com/Par1y/astrbot_plugin_lxdx
 astrbot_version: ">=4.9.2"
