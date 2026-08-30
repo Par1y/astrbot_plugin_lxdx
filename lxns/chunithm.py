@@ -245,7 +245,7 @@ class ChunithmHandler:
                 t,
                 {
                     "plugin_display_name": "落雪DX (中二节奏)",
-                    "plugin_version": "1.1.0",
+                    "plugin_version": self._p._version,
                     "auth_mode": "OAuth(PKCE)" if self._p._is_oauth else "api_key",
                     "auth_desc": desc,
                     "commands": [

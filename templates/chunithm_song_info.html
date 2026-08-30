@@ -10,8 +10,12 @@
       crossorigin
     />
     <noscript
-      >
-      <link
+      ><link
+        rel="stylesheet"
+        href="https://fontsapi.zeoseven.com/413/main/result.css"
+      />
+    </noscript>
+    <link
       href="https://fontsapi.zeoseven.com/851/main/result.css"
       onload="this.rel = 'stylesheet'"
       rel="preload"
@@ -52,12 +56,13 @@
       .jacket {
         width: 22.5%; aspect-ratio: 1;
         border: 1px solid #ddd;
+        border-radius: 8px;
         object-fit: cover;
         background: #f5f5f5;
         flex-shrink: 0;
       }
       .jacket-placeholder {
-        width: 20%; aspect-ratio: 1;
+        width: 22.5%; aspect-ratio: 1;
         border-radius: 8px;
         border: 1px solid #ddd;
         background: #f5f5f5;
@@ -174,9 +179,17 @@
               <span class="value">{{ song.id }}</span>
             </div>
             {% if local_icon_base64 %}
-            <img class="lxns-icon" src="data:image/png;base64,{{ local_icon_base64 }}" />
+            <img
+              class="lxns-icon"
+              src="data:image/png;base64,{{ local_icon_base64 }}"
+              alt="lxns"
+            />
             {% else %}
-            <img class="lxns-icon" src="https://maimai.lxns.net/favicon.webp" />
+            <img
+              class="lxns-icon"
+              src="https://maimai.lxns.net/favicon.webp"
+              alt="lxns"
+            />
             {% endif %}
           </div>
           <div class="song-info-item artist-item">

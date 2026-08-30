@@ -77,6 +77,7 @@ class LxdxPlugin(Star):
         self._pkce: dict[str, dict] = {}
         self._tmpl: dict[str, str] = {}
         self._tdir = Path(__file__).parent / "templates"
+        self._version = self._read_version()
 
         self._maimai = MaimaiHandler(self)
         self._chunithm = ChunithmHandler(self)
@@ -132,6 +133,18 @@ class LxdxPlugin(Star):
     @property
     def _is_oauth(self) -> bool:
         return self._method != "api_key"
+
+    @staticmethod
+    def _read_version() -> str:
+        """从 metadata.yaml 读取插件版本号，供 help 模板展示。"""
+        meta = Path(__file__).parent / "metadata.yaml"
+        try:
+            import yaml
+
+            data = yaml.safe_load(meta.read_text("utf-8")) or {}
+            return str(data.get("version", "unknown")).removeprefix("v")
+        except Exception:
+            return "unknown"
 
     # --- auth helpers ---
 

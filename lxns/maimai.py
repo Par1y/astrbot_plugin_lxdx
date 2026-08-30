@@ -89,6 +89,7 @@ class MaimaiHandler:
                 t,
                 {
                     "plugin_display_name": "落雪DX",
+                    "plugin_version": self._p._version,
                     "auth_mode": "OAuth(PKCE)" if self._p._is_oauth else "api_key",
                     "auth_desc": desc,
                     "commands": [

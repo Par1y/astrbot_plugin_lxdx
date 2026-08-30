@@ -75,7 +75,7 @@
         border-radius: 8px;
       }
       .jacket-placeholder {
-        width: 20%;
+        width: 21%;
         aspect-ratio: 1;
         flex-shrink: 0;
         border-radius: 8px;
@@ -268,7 +268,7 @@
       .fc-alljusticecritical { color: #ff69b4; }
       .footer {
         text-align: center;
-        font-size: 1vw;
+        font-size: 1.8vw;
         color: #aaa;
         padding-top: 1.5%;
         border-top: 1px solid #eee;
@@ -300,7 +300,11 @@
               </div>
             </div>
             {% if character_uri %}
-            <img class="character-avatar" src="{{ character_uri }}" />
+            <img
+              class="character-avatar"
+              src="{{ character_uri }}"
+              alt="character"
+            />
             {% endif %}
           </div>
         </div>
@@ -316,7 +320,7 @@
               JUSTICE", "AJ") }}</span
             >
             {% endif %} {% if score.full_chain %}
-            <span class="badge">CHAIN</span>
+            <span class="badge">{{ score.full_chain|upper }} CHAIN</span>
             {% endif %}
           </div>
           <div class="score-card-header">

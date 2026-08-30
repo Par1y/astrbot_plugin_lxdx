@@ -23,7 +23,7 @@
       html,
       body {
         width: 100vw;
-        height: 100vh;
+        min-height: 100vh;
       }
       body {
         font-family: "寒蝉半圆体", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -41,7 +41,6 @@
         flex-direction: column;
         flex: 1;
         gap: 2%;
-        overflow: hidden;
       }
       .header {
         text-align: center;
@@ -107,6 +106,7 @@
     <div class="card">
       <div class="header">
         <h1>{{ plugin_display_name }}</h1>
+        <p>v{{ plugin_version }} · 舞萌 DX 查分插件</p>
       </div>
 
       <div class="section">

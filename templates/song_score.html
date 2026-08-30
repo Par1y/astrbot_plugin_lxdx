@@ -279,7 +279,7 @@
               <span class="value">{{ player.rating }}</span>
             </div>
             {% if icon_uri %}
-            <img class="icon-avatar" src="{{ icon_uri }}" />
+            <img class="icon-avatar" src="{{ icon_uri }}" alt="icon" />
             {% endif %}
           </div>
         </div>
@@ -290,12 +290,14 @@
         <div class="score-card">
           <div class="badges">
             {% if score.fc %}
-            <span class="badge fc-{{ score.fc|lower }}">{{ score.fc|upper }}</span>
-            {% endif %}
-            {% if score.fs %}
-            <span class="badge fs-{{ score.fs|lower }}">{{ score.fs|upper }}</span>
-            {% endif %}
-            {% if score.dx_star > 0 %}
+            <span class="badge fc-{{ score.fc|lower }}"
+              >{{ score.fc|upper }}</span
+            >
+            {% endif %} {% if score.fs %}
+            <span class="badge fs-{{ score.fs|lower }}"
+              >{{ score.fs|upper }}</span
+            >
+            {% endif %} {% if score.dx_star > 0 %}
             <span class="badge">{{ "★" * score.dx_star }}</span>
             {% endif %}
           </div>
@@ -312,7 +314,9 @@
           <div class="score-content">
             <div class="score-item">
               <span class="label">达成率</span>
-              <span class="value">{{ "%.4f"|format(score.achievements) }}%</span>
+              <span class="value"
+                >{{ "%.4f"|format(score.achievements) }}%</span
+              >
             </div>
             <div class="score-item">
               <span class="label">评级</span>
