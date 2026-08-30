@@ -1,4 +1,5 @@
-"""落雪DX 插件入口。国服舞萌 DX / 中二节奏查分，支持 OAuth(PKCE) 和开发者 API Key。"""
+"""落雪DX 插件入口。国服舞萌 DX / 中二节奏查分，支持 OAuth(PKCE) 和开发者 API Key，
+并注册 LLM 工具供大模型自然语言调用。"""
 
 from dataclasses import asdict
 from pathlib import Path
@@ -15,6 +16,15 @@ from .lxns.chunithm_client import ChunithmClient
 from .lxns.rate_limit import GlobalRateLimiter
 from .lxns.maimai import MaimaiHandler
 from .lxns.chunithm import ChunithmHandler
+from .lxns.tools import (
+    ChunithmBestsTool,
+    ChunithmRecentTool,
+    ChunithmScoreTool,
+    ChunithmSongTool,
+    MaimaiB50Tool,
+    MaimaiScoreTool,
+    MaimaiSongTool,
+)
 from .lxns.models import TokenInfo, LxnsError
 from .utils.storage import StorageManager
 from .utils.song_db import SongDatabase
@@ -28,7 +38,7 @@ SCOPE = "read_player read_user_profile"
     "astrbot_plugin_lxdx",
     "Par1y",
     "国服舞萌DX/中二节奏插件，使用落雪接口，支持 b50、曲目信息等功能。",
-    "0.4.2",
+    "0.5.0",
 )
 class LxdxPlugin(Star):
     """国服舞萌 DX / 中二节奏查分插件。
@@ -45,6 +55,7 @@ class LxdxPlugin(Star):
         dp = self._data_path(context)
         self._debug = c.get("debug", False)
         self._clear_kv = bool(c.get("clear_kv_on_terminate", False))
+        self._llm_send_image = bool(c.get("llm_tool_send_image", True))
         self._st = StorageManager(self, dp, debug=self._debug)
         self._sdb = SongDatabase(self._st.cache_dir)
         self._chu_sdb = ChuSongDatabase(self._st.cache_dir)
@@ -87,6 +98,15 @@ class LxdxPlugin(Star):
 
         self._maimai = MaimaiHandler(self)
         self._chunithm = ChunithmHandler(self)
+        self.context.add_llm_tools(
+            MaimaiB50Tool(plugin=self),
+            MaimaiSongTool(plugin=self),
+            MaimaiScoreTool(plugin=self),
+            ChunithmBestsTool(plugin=self),
+            ChunithmRecentTool(plugin=self),
+            ChunithmSongTool(plugin=self),
+            ChunithmScoreTool(plugin=self),
+        )
 
     @staticmethod
     def _data_path(ctx: Context) -> str:

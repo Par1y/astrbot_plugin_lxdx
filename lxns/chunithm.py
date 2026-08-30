@@ -9,6 +9,7 @@ from .models import (
     AuthExpiredError,
     CHU_DIFFICULTY_NAMES,
     CHU_DIFFICULTY_SHORT,
+    CHU_DIFF_MAP,
     JINJA_OPTIONS,
 )
 
@@ -85,6 +86,26 @@ class ChunithmHandler:
             return []
         except ValueError:
             return self._p._chu_sdb.get_by_title(q)
+
+    async def _chu_query_all_difficulties(self, song, fc: int, uid: str) -> list:
+        """查询歌曲所有难度(0-5)的最佳成绩，返回 (难度索引, 成绩) 列表。
+
+        AuthExpiredError 向上传播，由调用方清理过期 token 并引导重新登录
+        （指令路径与 LLM 工具共用，保证错误处理策略一致）。
+        """
+        found = []
+        for idx in range(6):  # 0-5: basic, advanced, expert, master, ultima, worldsend
+            try:
+                sc = await self._p._chu_client.get_player_best(
+                    song_id=song.id, level_index=idx, fc=fc, uid=uid
+                )
+                if sc:
+                    found.append((idx, sc))
+            except AuthExpiredError:
+                raise
+            except Exception:
+                continue
+        return found
 
     # --- static helpers ---
 
@@ -479,35 +500,13 @@ class ChunithmHandler:
             )
             return
 
-        # 解析难度映射
-        diff_map = {
-            "basic": 0,
-            "bas": 0,
-            "0": 0,
-            "advanced": 1,
-            "adv": 1,
-            "1": 1,
-            "expert": 2,
-            "exp": 2,
-            "2": 2,
-            "master": 3,
-            "mas": 3,
-            "3": 3,
-            "ultima": 4,
-            "ult": 4,
-            "4": 4,
-            "worldsend": 5,
-            "we": 5,
-            "5": 5,
-        }
-
         # 从后往前解析参数：最后一个可能是难度
         level_index = -1
         song_query_parts = args[:]
 
         # 检查最后一个参数是否是难度
-        if args[-1].lower() in diff_map:
-            level_index = diff_map[args[-1].lower()]
+        if args[-1].lower() in CHU_DIFF_MAP:
+            level_index = CHU_DIFF_MAP[args[-1].lower()]
             song_query_parts = args[:-1]
 
         # 剩余部分是歌曲名
@@ -551,21 +550,13 @@ class ChunithmHandler:
 
         # 如果未指定难度，查询所有难度
         if level_index == -1:
-            found_scores = []
-            for idx in range(
-                6
-            ):  # 0-5: basic, advanced, expert, master, ultima, worldsend
-                try:
-                    score = await self._p._chu_client.get_player_best(
-                        song_id=song.id,
-                        level_index=idx,
-                        fc=fc,
-                        uid=uid,
-                    )
-                    if score:
-                        found_scores.append((idx, score))
-                except Exception:
-                    continue
+            try:
+                found_scores = await self._chu_query_all_difficulties(song, fc, uid)
+            except AuthExpiredError as e:
+                await self._p._st.kv_delete(self._p._st.token_key(uid))
+                self._p._auth.remove_tokens(uid)
+                yield ev.plain_result(str(e))
+                return
 
             if not found_scores:
                 yield ev.plain_result(f"未找到成绩: {song.title}")

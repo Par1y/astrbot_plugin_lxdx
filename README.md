@@ -6,7 +6,7 @@
 
 普通的国服舞萌DX查分插件，只是使用落雪接口。
 
-[![Version](https://img.shields.io/badge/version-v0.4.2-blue)](https://github.com/Par1y/astrbot_plugin_lxdx/releases)
+[![Version](https://img.shields.io/badge/version-v0.5.0-blue)](https://github.com/Par1y/astrbot_plugin_lxdx/releases)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green)](./LICENSE)
 [![AstrBot](https://img.shields.io/badge/AstrBot-%3E%3D4.9.2-6f42c1)](https://github.com/AstrBotDevs/AstrBot)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB)](https://www.python.org/)
@@ -31,8 +31,7 @@
 - **查询歌曲基本信息**（曲名、艺术家、难度等）
 - **查询玩家成绩**（best50、等级/牌子进度、单曲成绩等）
 - **查询定数表、分数列表**
-
-- 提供 skill，使用自然语言查分（TODO）
+- **LLM 工具**：注册 function tools，可通过自然语言对话查分（b50、单曲成绩、查歌等）
 
 ## 安装 & 配置
 

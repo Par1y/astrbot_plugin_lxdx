@@ -9,6 +9,7 @@ from .models import (
     AuthExpiredError,
     DIFFICULTY_NAMES,
     DIFFICULTY_SHORT,
+    MAIMAI_DIFF_MAP,
     JINJA_OPTIONS,
 )
 
@@ -71,6 +72,30 @@ class MaimaiHandler:
             return []
         except ValueError:
             return self._p._sdb.get_by_title(q)
+
+    async def _query_all_difficulties(self, song, fc: str, uid: str) -> list:
+        """查询歌曲所有难度的最佳成绩，返回 (难度索引, 成绩, 谱面类型) 列表。
+
+        AuthExpiredError 向上传播，由调用方清理过期 token 并引导重新登录
+        （指令路径与 LLM 工具共用，保证错误处理策略一致）。
+        """
+        found = []
+        for d in song.difficulty_details:
+            try:
+                sc = await self._p._client.get_player_best(
+                    song_id=song.id,
+                    level_index=d["difficulty"],
+                    song_type=d["type"],
+                    fc=fc,
+                    uid=uid,
+                )
+                if sc:
+                    found.append((d["difficulty"], sc, d["type"]))
+            except AuthExpiredError:
+                raise
+            except Exception:
+                continue
+        return found
 
     # --- /lxdx help ---
 
@@ -257,25 +282,6 @@ class MaimaiHandler:
             )
             return
 
-        # 解析难度映射
-        diff_map = {
-            "basic": 0,
-            "bas": 0,
-            "0": 0,
-            "advanced": 1,
-            "adv": 1,
-            "1": 1,
-            "expert": 2,
-            "exp": 2,
-            "2": 2,
-            "master": 3,
-            "mas": 3,
-            "3": 3,
-            "remaster": 4,
-            "rem": 4,
-            "4": 4,
-        }
-
         # 从后往前解析参数：最后一个可能是类型，倒数第二个可能是难度
         song_type = ""
         level_index = -1
@@ -287,8 +293,8 @@ class MaimaiHandler:
             song_query_parts = args[:-1]
 
         # 检查倒数第一个（或倒数第二个如果有类型）参数是否是难度
-        if song_query_parts and song_query_parts[-1].lower() in diff_map:
-            level_index = diff_map[song_query_parts[-1].lower()]
+        if song_query_parts and song_query_parts[-1].lower() in MAIMAI_DIFF_MAP:
+            level_index = MAIMAI_DIFF_MAP[song_query_parts[-1].lower()]
             song_query_parts = song_query_parts[:-1]
 
         # 剩余部分是歌曲名
@@ -331,20 +337,13 @@ class MaimaiHandler:
 
         # 如果未指定难度，查询所有存在的难度
         if level_index == -1:
-            found_scores = []
-            for d in song.difficulty_details:
-                try:
-                    sc = await self._p._client.get_player_best(
-                        song_id=song.id,
-                        level_index=d["difficulty"],
-                        song_type=d["type"],
-                        fc=fc,
-                        uid=uid,
-                    )
-                    if sc:
-                        found_scores.append((d["difficulty"], sc, d["type"]))
-                except Exception:
-                    continue
+            try:
+                found_scores = await self._query_all_difficulties(song, fc, uid)
+            except AuthExpiredError as e:
+                await self._p._st.kv_delete(self._p._st.token_key(uid))
+                self._p._auth.remove_tokens(uid)
+                yield ev.plain_result(str(e))
+                return
 
             if not found_scores:
                 yield ev.plain_result(f"未找到成绩: {song.title}")
@@ -588,16 +587,24 @@ class MaimaiHandler:
         ]
 
     @staticmethod
+    def _b50_rows(recs) -> list[str]:
+        """将 Best 35 / Best 15 记录格式化为紧凑文本行（指令回退文本与 LLM 工具共用）。"""
+        ls = []
+        for i, r in enumerate(recs, 1):
+            d = DIFFICULTY_SHORT[r.level_index] if r.level_index < 5 else "?"
+            ls.append(
+                f"#{i} {r.song_name} [{d}{r.level}] "
+                f"{r.achievement_pct:.4f}% DX:{r.dx_score} {r.rank_display}"
+            )
+        return ls
+
+    @staticmethod
     def _b50_text(b50) -> str:
         total = b50.standard_total + b50.dx_total
-        ls = [f"Rating: {total}", "= Best 35 ="]
-        for i, r in enumerate(b50.standard, 1):
-            d = DIFFICULTY_SHORT[r.level_index] if r.level_index < 5 else "?"
-            ls.append(f"#{i} {r.title} [{d}] {r.achievement_pct:.4f}% DX:{r.dx_score}")
-        ls.append("= Recent 15 =")
-        for i, r in enumerate(b50.dx, 1):
-            d = DIFFICULTY_SHORT[r.level_index] if r.level_index < 5 else "?"
-            ls.append(f"#{i} {r.title} [{d}] {r.achievement_pct:.4f}% DX:{r.dx_score}")
+        ls = [f"Rating: {total}", "= 旧版本谱面 Best 35 ="]
+        ls.extend(MaimaiHandler._b50_rows(b50.standard))
+        ls.append("= 现版本谱面 Best 15 =")
+        ls.extend(MaimaiHandler._b50_rows(b50.dx))
         return "\n".join(ls)
 
     @staticmethod

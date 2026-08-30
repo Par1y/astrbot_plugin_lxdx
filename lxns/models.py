@@ -36,6 +36,25 @@ DIFFICULTY_COLORS = {
 }  # 对应 HTML 颜色
 DIFFICULTY_SHORT = ["Bas", "Adv", "Exp", "Mas", "ReM"]  # 缩写（3 字母）
 
+# 难度别名映射（全称/缩写/数字 → 难度索引），指令处理器与 LLM 工具共用，防止别名集漂移
+MAIMAI_DIFF_MAP = {
+    "basic": 0,
+    "bas": 0,
+    "0": 0,
+    "advanced": 1,
+    "adv": 1,
+    "1": 1,
+    "expert": 2,
+    "exp": 2,
+    "2": 2,
+    "master": 3,
+    "mas": 3,
+    "3": 3,
+    "remaster": 4,
+    "rem": 4,
+    "4": 4,
+}
+
 
 # --- 歌曲 & 成绩 ---
 
@@ -300,6 +319,29 @@ CHU_DIFFICULTY_COLORS = {
     "WORLD'S END": "#e040fb",
 }
 CHU_DIFFICULTY_SHORT = ["Bas", "Adv", "Exp", "Mas", "Ult", "WE"]
+
+# 中二节奏难度别名映射（全称/缩写/数字 → 难度索引），指令处理器与 LLM 工具共用
+CHU_DIFF_MAP = {
+    "basic": 0,
+    "bas": 0,
+    "0": 0,
+    "advanced": 1,
+    "adv": 1,
+    "1": 1,
+    "expert": 2,
+    "exp": 2,
+    "2": 2,
+    "master": 3,
+    "mas": 3,
+    "3": 3,
+    "ultima": 4,
+    "ult": 4,
+    "4": 4,
+    "worldsend": 5,
+    "world's end": 5,
+    "we": 5,
+    "5": 5,
+}
 
 
 class ChuClearType(StrEnum):

@@ -29,6 +29,10 @@
       "description": "停用时清除登录数据",
       "hint": "插件停用/重载时删除所有用户的 OAuth Token 与好友码绑定（含历史数据）；默认保留"
     },
+    "llm_tool_send_image": {
+      "description": "LLM 工具发送图片卡片",
+      "hint": "大模型调用查分工具时是否同时发送渲染的图片卡片（B50/Bests/Recent/查歌）；关闭后仅返回文本数据"
+    },
     "debug": {
       "description": "调试模式",
       "hint": "开启后输出更多调试日志"

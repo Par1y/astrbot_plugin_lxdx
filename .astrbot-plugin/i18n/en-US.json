@@ -29,6 +29,10 @@
       "description": "Clear Login Data on Terminate",
       "hint": "Delete all users' OAuth tokens and friend-code bindings (including historical data) when the plugin is unloaded or reloaded; kept by default"
     },
+    "llm_tool_send_image": {
+      "description": "Send Image Cards in LLM Tools",
+      "hint": "Whether to send rendered image cards (B50/Bests/Recent/song info) when the LLM calls query tools; disable to return text data only"
+    },
     "debug": {
       "description": "Debug Mode",
       "hint": "Enable to output more debug logs"
