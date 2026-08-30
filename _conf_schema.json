@@ -24,6 +24,18 @@
     "type": "string",
     "default": "urn:ietf:wg:oauth:2.0:oob"
   },
+  "rate_limit_interval": {
+    "description": "全局请求间隔（秒）",
+    "hint": "所有落雪 API 请求之间的最小间隔，防止高频请求；0 为不限制",
+    "type": "float",
+    "default": 1.0
+  },
+  "clear_kv_on_terminate": {
+    "description": "停用时清除登录数据",
+    "hint": "插件停用/重载时删除所有用户的 OAuth Token 与好友码绑定（含历史数据）；默认保留",
+    "type": "bool",
+    "default": false
+  },
   "debug": {
     "description": "调试模式",
     "hint": "开启后输出更多调试日志",

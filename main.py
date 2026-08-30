@@ -12,6 +12,7 @@ from astrbot.api import logger
 from .lxns.auth import LxnsAuth
 from .lxns.client import LxnsClient
 from .lxns.chunithm_client import ChunithmClient
+from .lxns.rate_limit import GlobalRateLimiter
 from .lxns.maimai import MaimaiHandler
 from .lxns.chunithm import ChunithmHandler
 from .lxns.models import TokenInfo, LxnsError
@@ -43,6 +44,7 @@ class LxdxPlugin(Star):
 
         dp = self._data_path(context)
         self._debug = c.get("debug", False)
+        self._clear_kv = bool(c.get("clear_kv_on_terminate", False))
         self._st = StorageManager(self, dp, debug=self._debug)
         self._sdb = SongDatabase(self._st.cache_dir)
         self._chu_sdb = ChuSongDatabase(self._st.cache_dir)
@@ -52,6 +54,7 @@ class LxdxPlugin(Star):
         self._ru = c.get("redirect_uri", "")
         self._method = c.get("method", "OAuth")
         self._api_key = c.get("api_key", "")
+        self._limiter = GlobalRateLimiter(c.get("rate_limit_interval", 1.0))
         self._client = LxnsClient(
             self._auth,
             debug=self._debug,
@@ -59,6 +62,7 @@ class LxdxPlugin(Star):
             api_key=self._api_key,
             is_oauth=self._method != "api_key",
             on_token_refresh=self._persist_token,
+            rate_limiter=self._limiter,
         )
         self._chu_client = ChunithmClient(
             self._auth,
@@ -67,12 +71,14 @@ class LxdxPlugin(Star):
             api_key=self._api_key,
             is_oauth=self._method != "api_key",
             on_token_refresh=self._persist_token,
+            rate_limiter=self._limiter,
         )
         self._am = AssetManager(self._st.assets_dir, debug=self._debug)
 
         self._jinja_env = jinja2.Environment(
             trim_blocks=True,
             lstrip_blocks=True,
+            autoescape=True,
         )
         self._pkce: dict[str, dict] = {}
         self._tmpl: dict[str, str] = {}
@@ -109,7 +115,8 @@ class LxdxPlugin(Star):
         logger.info(f"[lxdx] init done, mode={mode_label}")
 
     async def terminate(self):
-        await self._st.kv_clear_all()
+        if self._clear_kv:
+            await self._st.kv_clear_all()
         await self._client.close()
         await self._chu_client.close()
         logger.info("[lxdx] terminated")

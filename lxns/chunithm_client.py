@@ -9,6 +9,7 @@ from typing import Callable, Awaitable, Optional
 from astrbot.api import logger
 
 from .auth import LxnsAuth
+from .rate_limit import GlobalRateLimiter
 from .models import (
     TokenInfo,
     ChuSongInfo,
@@ -41,6 +42,7 @@ class ChunithmClient:
         is_oauth: bool = True,
         debug: bool = False,
         on_token_refresh: Optional[Callable[[str, TokenInfo], Awaitable[None]]] = None,
+        rate_limiter: Optional[GlobalRateLimiter] = None,
     ):
         self._auth = auth
         self._redirect_uri = redirect_uri
@@ -48,6 +50,12 @@ class ChunithmClient:
         self._is_oauth = is_oauth
         self._debug = debug
         self._on_token_refresh = on_token_refresh
+        self._rate_limiter = rate_limiter
+
+    async def _throttle(self) -> None:
+        """限速等待（每个逻辑请求只等待一次，重试不重复计费）。"""
+        if self._rate_limiter:
+            await self._rate_limiter.acquire()
 
     @property
     def _is_api_key_mode(self) -> bool:
@@ -102,6 +110,7 @@ class ChunithmClient:
             "redirect_uri": self._redirect_uri,
             "refresh_token": refresh_token,
         }
+        await self._throttle()
         for i in range(self.MAX_RETRIES + 1):
             try:
                 async with self._http_client() as c:
@@ -135,6 +144,7 @@ class ChunithmClient:
         """通用 GET 请求：auth=False 时不附加认证头（用于公共 API）。"""
         h = self._get_httpx()
         hdrs = await self._auth_headers(uid) if auth else {}
+        await self._throttle()
         for i in range(self.MAX_RETRIES + 1):
             try:
                 t0 = time.monotonic()

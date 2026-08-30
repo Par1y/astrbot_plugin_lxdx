@@ -19,7 +19,12 @@ from .models import TokenInfo
 
 @dataclass
 class PKCEParams:
-    """PKCE 参数：code_verifier（原始随机串）、code_challenge（S256 哈希）、state（防 CSRF）。"""
+    """PKCE 参数：code_verifier（原始随机串）、code_challenge（S256 哈希）、state（随机请求标识）。
+
+    本插件使用 OOB（urn:ietf:wg:oauth:2.0:oob）流程，用户手动粘贴授权码，无服务端回调，
+    state 无法回传校验，因此不提供 CSRF 防护；授权码与发起会话的绑定由 PKCE code_verifier
+    （按 uid 缓存、交换时必须匹配）保证。state 仅作为随授权 URL 携带的请求标识保留。
+    """
 
     code_verifier: str
     code_challenge: str
@@ -43,7 +48,7 @@ class LxnsAuth:
 
         - code_verifier: 64 字节随机 → url-safe base64 无填充
         - code_challenge: SHA256(code_verifier) → url-safe base64 无填充
-        - state: 32 字节随机 → url-safe base64 无填充（防 CSRF）
+        - state: 32 字节随机 → url-safe base64 无填充（请求标识；OOB 流程无回调，不参与校验）
         """
         v = os.urandom(64)
         cv = base64.urlsafe_b64encode(v).rstrip(b"=").decode("ascii")

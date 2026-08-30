@@ -21,6 +21,14 @@
       "description": "OAuth Redirect URI",
       "hint": "Do not change unless you know what this is"
     },
+    "rate_limit_interval": {
+      "description": "Global Request Interval (seconds)",
+      "hint": "Minimum interval between all LXNS API requests to prevent too high request rate; 0 disables it"
+    },
+    "clear_kv_on_terminate": {
+      "description": "Clear Login Data on Terminate",
+      "hint": "Delete all users' OAuth tokens and friend-code bindings (including historical data) when the plugin is unloaded or reloaded; kept by default"
+    },
     "debug": {
       "description": "Debug Mode",
       "hint": "Enable to output more debug logs"

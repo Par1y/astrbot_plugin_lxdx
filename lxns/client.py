@@ -6,6 +6,7 @@ import time
 from astrbot.api import logger
 
 from .auth import LxnsAuth
+from .rate_limit import GlobalRateLimiter
 from .models import (
     PlayerB50,
     PlayerRecord,
@@ -43,16 +44,24 @@ class LxnsClient:
         is_oauth: bool = True,
         debug: bool = False,
         on_token_refresh: Optional[Callable[[str, TokenInfo], Awaitable[None]]] = None,
+        rate_limiter: Optional[GlobalRateLimiter] = None,
     ):
         """auth: PKCE 授权管理实例；redirect_uri: OAuth 回调地址；api_key: 开发者 Key（可选）；
         is_oauth: 是否为OAuth模式（True=OAuth, False=API Key）；
-        debug: 开启调试日志；on_token_refresh: Token 刷新时将新 Token 持久化到 KV 的回调（uid, TokenInfo）→ awaitable。"""
+        debug: 开启调试日志；on_token_refresh: Token 刷新时将新 Token 持久化到 KV 的回调（uid, TokenInfo）→ awaitable；
+        rate_limiter: 全局请求间隔限速器（可选，多个 client 共享同一实例）。"""
         self._auth = auth
         self._redirect_uri = redirect_uri
         self._api_key = api_key
         self._is_oauth = is_oauth
         self._debug = debug
         self._on_token_refresh = on_token_refresh
+        self._rate_limiter = rate_limiter
+
+    async def _throttle(self) -> None:
+        """限速等待（每个逻辑请求只等待一次，重试不重复计费）。"""
+        if self._rate_limiter:
+            await self._rate_limiter.acquire()
 
     @staticmethod
     def _get_httpx():
@@ -106,6 +115,7 @@ class LxnsClient:
         pl = self._token_payload(
             "authorization_code", code=code, code_verifier=code_verifier
         )
+        await self._throttle()
         for i in range(self.MAX_RETRIES + 1):
             try:
                 async with self._http_client() as c:
@@ -136,6 +146,7 @@ class LxnsClient:
         """用 refresh_token 刷新 OAuth Token。400/401 时清除缓存并抛 AuthExpiredError。"""
         h = self._get_httpx()
         pl = self._token_payload("refresh_token", refresh_token=refresh_token)
+        await self._throttle()
         for i in range(self.MAX_RETRIES + 1):
             try:
                 async with self._http_client() as c:
@@ -193,6 +204,7 @@ class LxnsClient:
         """通用 GET 请求：auth=False 时不附加认证头（用于公共 API）。"""
         h = self._get_httpx()
         hdrs = await self._auth_headers(uid) if auth else {}
+        await self._throttle()
         for i in range(self.MAX_RETRIES + 1):
             try:
                 t0 = time.monotonic()
